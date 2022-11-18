@@ -15,7 +15,11 @@
     ],
     "allowSyntheticDefaultImports": true,
     "noUncheckedIndexedAccess": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "paths": {
+      "@components/*": ["components/*"],
+      "@assets/*": ["assets/*"]
+    }
   },
   "include": [
     "src/**/*"
