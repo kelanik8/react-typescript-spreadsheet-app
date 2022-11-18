@@ -10,13 +10,16 @@
     "start": "parcel src/index.html --out-dir build/debug --public-url /",
     "build": "parcel build src/index.html --out-dir build/release --public-url /",
     "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
-    "test": "jest"
+    "test": "jest",
+    "commit": "cz"
   },
   "dependencies": {
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.2.0",
+    "@commitlint/config-conventional": "^17.2.0",
     "@testing-library/dom": "^7.29.4",
     "@testing-library/jest-dom": "^5.11.8",
     "@testing-library/react": "^11.2.2",
@@ -33,6 +36,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "husky": "^8.0.2",
     "jest": "^26.6.3",
     "parcel-bundler": "^1.12.4",
     "prettier": "^2.2.1",
