@@ -54,6 +54,7 @@ function Cell({ column, row, children }: CellProps): React.ReactElement {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const startEditing = () => setIsEditing(true);
+  const stopEditing = () => setIsEditing(false);
 
   useLayoutEffect(() => {
     if (isEditing && inputRef.current) {
@@ -69,7 +70,12 @@ function Cell({ column, row, children }: CellProps): React.ReactElement {
       onDoubleClick={startEditing}
     >
       {isEditing ? (
-        <input type="text" defaultValue={children} ref={inputRef} />
+        <input
+          type="text"
+          defaultValue={children}
+          ref={inputRef}
+          onBlur={stopEditing}
+        />
       ) : (
         children
       )}

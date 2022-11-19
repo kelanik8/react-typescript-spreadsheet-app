@@ -44,7 +44,7 @@ describe("spreadsheet", () => {
     expect(screen.getByTestId("B2")).toHaveTextContent("content in B2");
   });
 
-  describe("Cell", () => {
+  describe("cell", () => {
     it("is focused when clicked", () => {
       render(<Spreadsheet />);
       const cell = screen.getByTestId("B2");
@@ -72,6 +72,18 @@ describe("spreadsheet", () => {
       userEvent.dblClick(cell);
 
       expect(screen.getByRole("textbox")).toHaveFocus();
+    });
+
+    it("hides the input element again when clicking anywhere else", () => {
+      render(<Spreadsheet />);
+
+      const cellToEdit = screen.getByTestId("B2");
+      const otherCell = screen.getByTestId("A1");
+
+      userEvent.dblClick(cellToEdit);
+      userEvent.click(otherCell);
+
+      expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
   });
 });
