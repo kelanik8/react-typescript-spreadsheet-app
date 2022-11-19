@@ -2,7 +2,7 @@
   "name": "@kelanik8/react-typescript-spreadsheet",
   "version": "0.1.0",
   "description": "@kelanik8/react-typescript-spreadsheet",
-  "main": "dist/main.js",
+  "main": "src/index.ts",
   "author": "Kelani Tolulope <kelanik8@gmail.com>",
   "license": "MIT",
   "private": true,

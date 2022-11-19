@@ -1,5 +1,6 @@
 import * as React from "react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Spreadsheet } from "../src/spreadsheet";
 
 describe("spreadsheet", () => {
@@ -27,5 +28,30 @@ describe("spreadsheet", () => {
 
     expect(screen.getByTestId("A1")).toBeInTheDocument();
     expect(screen.getByTestId("D5")).toBeInTheDocument();
+  });
+
+  it("displays data in cells", () => {
+    render(
+      <Spreadsheet
+        data={[
+          ["content in A1", ""],
+          ["", "content in B2"],
+        ]}
+      />,
+    );
+
+    expect(screen.getByTestId("A1")).toHaveTextContent("content in A1");
+    expect(screen.getByTestId("B2")).toHaveTextContent("content in B2");
+  });
+
+  describe("Cell", () => {
+    it("is focused when clicked", () => {
+      render(<Spreadsheet />);
+      const cell = screen.getByTestId("B2");
+
+      userEvent.click(cell);
+
+      expect(cell).toHaveFocus();
+    });
   });
 });

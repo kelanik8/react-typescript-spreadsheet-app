@@ -3,9 +3,18 @@ import * as React from "react";
 const NUMBER_OF_ROWS = 5;
 const COLUMNS = ["A", "B", "C", "D"];
 
-export function Spreadsheet(): React.ReactElement {
+interface SpreadsheetProps {
+  data?: string[][];
+}
+
+export function Spreadsheet({
+  data = [
+    ["content in A1", ""],
+    ["", "content in B2"],
+  ],
+}: SpreadsheetProps): React.ReactElement {
   return (
-    <table>
+    <table className="spreadsheet">
       <thead>
         <tr>
           <th aria-label="empty header" />
@@ -19,11 +28,15 @@ export function Spreadsheet(): React.ReactElement {
         {[...Array(NUMBER_OF_ROWS)].map((_, rowIndex) => (
           <tr key={rowIndex.toString()}>
             <th scope="row">{rowIndex + 1}</th>
-            {COLUMNS.map((columnLetter) => (
+            {COLUMNS.map((columnLetter, columnIndex) => (
               <td
                 key={columnLetter}
                 data-testid={`${columnLetter}${rowIndex + 1}`}
-              />
+                className={`${data[rowIndex]?.[columnIndex]}`}
+                tabIndex={0}
+              >
+                {data[rowIndex]?.[columnIndex]}
+              </td>
             ))}
           </tr>
         ))}
