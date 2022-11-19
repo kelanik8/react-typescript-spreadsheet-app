@@ -133,5 +133,66 @@ describe("spreadsheet", () => {
 
       expect(cellToEdit).toHaveFocus();
     });
+
+    it("hides the input element again when hitting escape", () => {
+      render(<Spreadsheet />);
+      const cellToEdit = screen.getByTestId("B2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "updated value{esc}");
+
+      expect(inputElement).not.toBeInTheDocument();
+    });
+
+    it("does not update the cell with the typed value when hitting escape", () => {
+      render(<Spreadsheet data={[["old value"]]} />);
+      const cellToEdit = screen.getByTestId("A1");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "updated value{esc}");
+
+      expect(screen.getByTestId("A1")).not.toHaveTextContent("updated value");
+    });
+
+    it("refocuses itself again after hitting escape", () => {
+      render(<Spreadsheet />);
+      const cellToEdit = screen.getByTestId("B2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "updated value{esc}");
+
+      expect(cellToEdit).toHaveFocus();
+    });
+
+    it("resets previously cancelled edits when editing again", () => {
+      render(<Spreadsheet data={[["cell data"]]} />);
+      const cellToEdit = screen.getByTestId("A1");
+      const otherCell = screen.getByTestId("B1");
+
+      userEvent.dblClick(cellToEdit);
+      let inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "updated{esc}");
+      userEvent.dblClick(cellToEdit);
+      inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "last edit");
+      userEvent.click(otherCell);
+
+      expect(cellToEdit).toHaveTextContent("last edit");
+    });
+
+    it("resets it value again after cancelling the edit", () => {
+      render(<Spreadsheet data={[["cell data"]]} />);
+      const cellToEdit = screen.getByTestId("A1");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "updated{esc}");
+      userEvent.dblClick(cellToEdit);
+
+      expect(screen.getByRole("textbox")).toHaveValue("cell data");
+    });
   });
 });

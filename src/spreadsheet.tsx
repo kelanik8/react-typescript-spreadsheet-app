@@ -1,5 +1,11 @@
 import * as React from "react";
-import { useLayoutEffect, useRef, useState, KeyboardEvent } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  KeyboardEvent,
+  useEffect,
+} from "react";
 
 const NUMBER_OF_ROWS = 100;
 const COLUMNS = ["A", "B", "C", "D"];
@@ -69,38 +75,70 @@ interface CellProps {
   valueUpdated: (column: string, row: number, value: string) => void;
 }
 
+type EditAction = "confirm" | "cancel";
+
 function Cell({
   column,
   row,
-  children,
+  children = "",
   valueUpdated,
 }: CellProps): React.ReactElement {
   const [isEditing, setIsEditing] = useState(false);
-  const [content, setContent] = useState(children ?? "");
+  const [content, setContent] = useState(children);
+  const editActionRef = useRef<EditAction>("confirm");
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const startEditing = () => setIsEditing(true);
-  const stopEditing = () => {
+
+  const confirmEditing = () => {
     setIsEditing(false);
-    valueUpdated(column, row, content);
   };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    editActionRef.current = "cancel";
+  };
+
   const updateContent = (changeEvent: React.ChangeEvent<HTMLInputElement>) =>
     setContent(changeEvent.currentTarget.value);
 
+  const focusCall = () => inputRef.current?.parentElement?.focus();
+
   const keyPress = (keyPressEvent: KeyboardEvent<HTMLInputElement>) => {
     if (keyPressEvent.key === "Enter") {
-      stopEditing();
+      confirmEditing();
 
-      if (inputRef.current?.parentElement) {
-        inputRef.current.parentElement.focus();
-      }
+      focusCall();
+    }
+  };
+
+  const keyDown = (keyDownEvent: KeyboardEvent<HTMLInputElement>) => {
+    if (keyDownEvent.key === "Escape") {
+      cancelEditing();
+      focusCall();
+    }
+  };
+
+  const blur = () => {
+    confirmEditing();
+
+    if (editActionRef.current === "confirm") {
+      valueUpdated(column, row, content);
+    } else {
+      setContent(children);
     }
   };
 
   useLayoutEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (isEditing) {
+      editActionRef.current = "confirm";
     }
   }, [isEditing]);
 
@@ -116,9 +154,10 @@ function Cell({
           type="text"
           defaultValue={content}
           ref={inputRef}
-          onBlur={stopEditing}
+          onBlur={blur}
           onChange={updateContent}
           onKeyPress={keyPress}
+          onKeyDown={keyDown}
         />
       ) : (
         children
