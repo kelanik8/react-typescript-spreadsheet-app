@@ -1,4 +1,4 @@
-# Very Good Spreadsheet
+# Spreadsheet app in React/Typescript
 
 A spreadsheet component written in TypeScript and React.
 It supports displaying and updating data as well as formulas containing arithmetic and cell references.
