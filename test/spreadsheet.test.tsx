@@ -85,5 +85,20 @@ describe("spreadsheet", () => {
 
       expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     });
+
+    it("updates the cell with the typed value when clicking anywhere else", () => {
+      render(<Spreadsheet data={[["old value"]]} />);
+
+      const cellToEdit = screen.getByTestId("A1");
+      const otherCell = screen.getByTestId("B1");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+
+      userEvent.type(inputElement, "updated value");
+      userEvent.click(otherCell);
+
+      expect(cellToEdit).toHaveTextContent("updated value");
+    });
   });
 });
