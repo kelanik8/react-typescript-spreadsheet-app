@@ -53,5 +53,25 @@ describe("spreadsheet", () => {
 
       expect(cell).toHaveFocus();
     });
+
+    it("switches to an input element when double clicked", () => {
+      render(<Spreadsheet />);
+
+      const cell = screen.getByTestId("B2");
+
+      userEvent.dblClick(cell);
+
+      expect(screen.getByRole("textbox")).toBeInTheDocument();
+    });
+
+    it("automatically focuses the input element", () => {
+      render(<Spreadsheet />);
+
+      const cell = screen.getByTestId("B2");
+
+      userEvent.dblClick(cell);
+
+      expect(screen.getByRole("textbox")).toHaveFocus();
+    });
   });
 });

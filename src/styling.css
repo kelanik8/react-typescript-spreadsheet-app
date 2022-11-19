@@ -40,12 +40,33 @@ table.spreadsheet td {
     border-right: var(--light-border);
     height: 26px;
     overflow: hidden;
-    padding: 0 .4rem;
+    padding: 0;
     white-space: nowrap;
     width: 130px;
 }
 
-table.spreadsheet td:focus {
-    background-color: hsla(126, 17%, 66%, 0.6);
+.cell {
+    align-items: center;
+    display: flex;
+    height: inherit;
+    padding: 0.4rem;
+    width: inherit;
+}
+
+.cell:focus, .cell:focus-within {
+    background-color: hsl(219deg 52% 90%);
     outline: 0;
+}
+
+.cell input {
+    --padding-offset: .3rem;
+
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    margin: 0 calc(-1 * var(--padding-offset));
+    outline: none;
+    padding: 0 var(--padding-offset);
+    width: calc(100% + 2 * var(--padding-offset));
 }

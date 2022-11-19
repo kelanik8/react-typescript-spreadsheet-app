@@ -1,6 +1,7 @@
 import * as React from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
-const NUMBER_OF_ROWS = 5;
+const NUMBER_OF_ROWS = 100;
 const COLUMNS = ["A", "B", "C", "D"];
 
 interface SpreadsheetProps {
@@ -29,18 +30,49 @@ export function Spreadsheet({
           <tr key={rowIndex.toString()}>
             <th scope="row">{rowIndex + 1}</th>
             {COLUMNS.map((columnLetter, columnIndex) => (
-              <td
-                key={columnLetter}
-                data-testid={`${columnLetter}${rowIndex + 1}`}
-                className={`${data[rowIndex]?.[columnIndex]}`}
-                tabIndex={0}
-              >
-                {data[rowIndex]?.[columnIndex]}
+              <td key={columnLetter}>
+                <Cell column={columnLetter} row={rowIndex + 1}>
+                  {data[rowIndex]?.[columnIndex]}
+                </Cell>
               </td>
             ))}
           </tr>
         ))}
       </tbody>
     </table>
+  );
+}
+
+interface CellProps {
+  column: string;
+  row: number;
+  children: string | undefined;
+}
+
+function Cell({ column, row, children }: CellProps): React.ReactElement {
+  const [isEditing, setIsEditing] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const startEditing = () => setIsEditing(true);
+
+  useLayoutEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
+
+  return (
+    <div
+      className="cell"
+      data-testid={`${column}${row}`}
+      tabIndex={0}
+      onDoubleClick={startEditing}
+    >
+      {isEditing ? (
+        <input type="text" defaultValue={children} ref={inputRef} />
+      ) : (
+        children
+      )}
+    </div>
   );
 }
