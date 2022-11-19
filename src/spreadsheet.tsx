@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, KeyboardEvent } from "react";
 
 const NUMBER_OF_ROWS = 100;
 const COLUMNS = ["A", "B", "C", "D"];
@@ -88,6 +88,16 @@ function Cell({
   const updateContent = (changeEvent: React.ChangeEvent<HTMLInputElement>) =>
     setContent(changeEvent.currentTarget.value);
 
+  const keyPress = (keyPressEvent: KeyboardEvent<HTMLInputElement>) => {
+    if (keyPressEvent.key === "Enter") {
+      stopEditing();
+
+      if (inputRef.current?.parentElement) {
+        inputRef.current.parentElement.focus();
+      }
+    }
+  };
+
   useLayoutEffect(() => {
     if (isEditing && inputRef.current) {
       inputRef.current.focus();
@@ -108,6 +118,7 @@ function Cell({
           ref={inputRef}
           onBlur={stopEditing}
           onChange={updateContent}
+          onKeyPress={keyPress}
         />
       ) : (
         children

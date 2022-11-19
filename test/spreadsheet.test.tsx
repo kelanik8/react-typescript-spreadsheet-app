@@ -100,5 +100,38 @@ describe("spreadsheet", () => {
 
       expect(cellToEdit).toHaveTextContent("updated value");
     });
+
+    it("hides the input element again when hitting enter", () => {
+      render(<Spreadsheet data={[]} />);
+      const cellToEdit = screen.getByTestId("B2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "update value{enter}");
+
+      expect(inputElement).not.toBeInTheDocument();
+    });
+
+    it("updates the cell with the typed value when hitting enter", () => {
+      render(<Spreadsheet data={[["old value"]]} />);
+      const cellToEdit = screen.getByTestId("A1");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "update value{enter}");
+
+      expect(cellToEdit).toHaveTextContent("update value");
+    });
+
+    it("refocuses itself again after hitting enter", () => {
+      render(<Spreadsheet />);
+      const cellToEdit = screen.getByTestId("B2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "updated value{enter}");
+
+      expect(cellToEdit).toHaveFocus();
+    });
   });
 });
