@@ -1,4 +1,4 @@
-import { calculateValueOf, tokenize } from "../src/formula";
+import { calculateValueOf, parse, tokenize } from "../src/formula";
 
 describe("formulas", () => {
   it("does not calculate anything for empty cells", () => {
@@ -30,6 +30,65 @@ describe("formulas", () => {
 
     it("tokenizes thing that are unexpected", () => {
       expect(tokenize("unexpected #!@")).toEqual(["unexpected", "#!@"]);
+    });
+  });
+
+  describe("parsing", () => {
+    it("throws an error when trying to parse empty formulas", () => {
+      expect(() => parse(tokenize(""))).toThrow("Formula has no content");
+    });
+
+    it("parses single number values", () => {
+      expect(parse(tokenize("1.23"))).toEqual({
+        type: "value",
+        value: 1.23,
+      });
+    });
+
+    it("parses negative number values", () => {
+      expect(parse(tokenize("-1"))).toEqual({
+        type: "value",
+        value: -1,
+      });
+    });
+
+    it("parses addittion", () => {
+      expect(parse(tokenize("1+2"))).toEqual({
+        type: "operator",
+        kind: "+",
+        left: { type: "value", value: 1 },
+        right: { type: "value", value: 2 },
+      });
+    });
+
+    it("throws an error when an operand is missing", () => {
+      expect(() => parse(tokenize("1+"))).toThrow(
+        "Expected operand, but found nothing",
+      );
+
+      expect(() => parse(tokenize("+2"))).toThrow(
+        "Expected operand, but found +",
+      );
+    });
+
+    it("throws an error an unexpected tokens appear", () => {
+      expect(() => parse(tokenize("1this-is-unexpected"))).toThrow(
+        "Expected operator, but found this-is-unexpected",
+      );
+    });
+
+    it("parses multiple operations", () => {
+      expect(parse(tokenize("1+2+3"))).toEqual({
+        type: "operator",
+        kind: "+",
+        left: {
+          type: "operator",
+          kind: "+",
+          left: { type: "value", value: 1 },
+          right: { type: "value", value: 2 },
+        },
+        right: { type: "value", value: 3 },
+      });
     });
   });
 });
