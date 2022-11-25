@@ -2,7 +2,27 @@ const numbers = /^\d+(\.\d+)?$/;
 const operators = /^[+\-*/]$/;
 const rest = /^[^\s]+$/;
 
-export function calculateValueOf<T>(content: T): T {
+type ParseTree = ValueNode | OperatorNode;
+
+type ValueNode = { type: "value"; value: number };
+type OperatorNode = {
+  type: "operator";
+  kind: string;
+  left: ParseTree;
+  right: ParseTree;
+};
+
+function calculateFormula(content: string): string {
+  return String(interpret(parse(tokenize(content))));
+}
+
+export function calculateValueOf(
+  content: undefined | string,
+): undefined | string {
+  if (content && content.charAt(0) === "=") {
+    return calculateFormula(content.substring(1));
+  }
+
   return content;
 }
 
@@ -16,12 +36,6 @@ export function tokenize(content: string): string[] {
 
   return content.match(token) ?? [];
 }
-
-// console.log(tokenize("unexpected #!@"));
-
-type ParseTree =
-  | { type: "value"; value: number }
-  | { type: "operator"; kind: string; left: ParseTree; right: ParseTree };
 
 export function parse(tokens: string[]): ParseTree {
   if (tokens.length === 0) {
@@ -90,4 +104,35 @@ function readOperator(tokens: string[]): string {
   }
 
   return token;
+}
+
+export function interpret(node: ParseTree): number {
+  if (node.type === "value") {
+    return interpretValue(node);
+  }
+
+  return interpretOperator(node);
+}
+
+function interpretValue(node: ValueNode): number {
+  return node.value;
+}
+
+function interpretOperator(node: OperatorNode): number {
+  const left = interpret(node.left);
+  const right = interpret(node.right);
+
+  if (node.kind === "+") {
+    return left + right;
+  }
+
+  if (node.kind === "-") {
+    return left - right;
+  }
+
+  if (node.kind === "*") {
+    return left * right;
+  }
+
+  return left / right;
 }

@@ -1,4 +1,4 @@
-import { calculateValueOf, parse, tokenize } from "../src/formula";
+import { calculateValueOf, parse, tokenize, interpret } from "../src/formula";
 
 describe("formulas", () => {
   it("does not calculate anything for empty cells", () => {
@@ -9,7 +9,7 @@ describe("formulas", () => {
     expect(calculateValueOf("some content")).toEqual("some content");
   });
 
-  xit("calculates simple arithmetic", () => {
+  it("calculates simple arithmetic", () => {
     expect(calculateValueOf("=1+2")).toEqual("3");
   });
 
@@ -89,6 +89,24 @@ describe("formulas", () => {
         },
         right: { type: "value", value: 3 },
       });
+    });
+  });
+
+  describe("interpreting", () => {
+    it("interprets single numbers", () => {
+      expect(interpret(parse(tokenize("1")))).toEqual(1);
+    });
+
+    it("interprets addition", () => {
+      expect(interpret(parse(tokenize("1+2")))).toEqual(3);
+    });
+
+    it("interprets subtraction", () => {
+      expect(interpret(parse(tokenize("3-2")))).toEqual(1);
+    });
+
+    it("interprets division", () => {
+      expect(interpret(parse(tokenize("8/2")))).toEqual(4);
     });
   });
 });
