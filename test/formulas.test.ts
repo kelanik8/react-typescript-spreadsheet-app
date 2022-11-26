@@ -93,7 +93,7 @@ describe("formulas", () => {
 
     it("throws an error an unexpected tokens appear", () => {
       expect(() => parse(tokenize("1this-is-unexpected"))).toThrow(
-        "Expected operator, but found this-is-unexpected",
+        "Unexpected token: this-is-unexpected",
       );
     });
 
@@ -112,7 +112,7 @@ describe("formulas", () => {
     });
 
     it("parses string concatenation", () => {
-      expect(parse(tokenize("'a''b'"))).toEqual({
+      expect(parse(tokenize("'a'&'b'"))).toEqual({
         type: "operator",
         kind: "&",
         left: { type: "value", kind: "string", value: "a" },
@@ -136,6 +136,16 @@ describe("formulas", () => {
 
     it("interprets division", () => {
       expect(interpret(parse(tokenize("8/2")))).toEqual(4);
+    });
+
+    it("concatenates strings", () => {
+      expect(interpret(parse(tokenize("'a'&'b'")))).toEqual("ab");
+    });
+
+    it("throws an error when incompatible types are used", () => {
+      expect(() => interpret(parse(tokenize("1+'a'")))).toThrow(
+        "Unable to evaluate number + string",
+      );
     });
   });
 });

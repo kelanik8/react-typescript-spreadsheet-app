@@ -9,7 +9,7 @@ import {
 import { calculateValueOf } from "./formula";
 
 const NUMBER_OF_ROWS = 100;
-const COLUMNS = ["A", "B", "C", "D"];
+const COLUMNS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
 
 interface SpreadsheetProps {
   data?: string[][];
