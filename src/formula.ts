@@ -1,10 +1,14 @@
 const numbers = /^\d+(\.\d+)?$/;
-const operators = /^[+\-*/]$/;
+const operators = /^[+\-*/&]$/;
 const rest = /^[^\s]+$/;
+const strings = /^'[^']*'|"[^"]*"$/;
 
 type ParseTree = ValueNode | OperatorNode;
 
-type ValueNode = { type: "value"; value: number };
+type ValueNode =
+  | { type: "value"; kind: "number"; value: number }
+  | { type: "value"; kind: "string"; value: string };
+
 type OperatorNode = {
   type: "operator";
   kind: string;
@@ -27,7 +31,7 @@ function calculateFormula(content: string): string {
 }
 
 export function tokenize(content: string): string[] {
-  const allTokens = [numbers, operators, rest];
+  const allTokens = [numbers, strings, operators, rest];
   const allTokensCombined = allTokens
     .map((regex) => removeFirstAndLastCharacter(regex.source))
     .join("|");
@@ -42,7 +46,7 @@ export function parse(tokens: string[]): ParseTree {
     throw new Error("Formula has no content");
   }
 
-  return readOperation(tokens);
+  return readFactor(tokens);
 }
 
 function readOperand(tokens: string[]): ParseTree {
@@ -56,14 +60,27 @@ function readOperand(tokens: string[]): ParseTree {
 
   const token = next(tokens);
 
-  if (!token || !numbers.test(token)) {
-    throw new Error(`Expected operand, but found ${token ?? "nothing"}`);
+  if (!token) {
+    throw new Error("Expected operand, but found nothing");
   }
 
-  return {
-    type: "value",
-    value: sign * parseFloat(token),
-  };
+  if (numbers.test(token)) {
+    return {
+      type: "value",
+      kind: "number",
+      value: sign * parseFloat(token),
+    };
+  }
+
+  if (strings.test(token)) {
+    return {
+      type: "value",
+      kind: "string",
+      value: removeFirstAndLastCharacter(token),
+    };
+  }
+
+  throw new Error(`Expected operand, but found ${token}`);
 }
 
 function next(tokens: string[]): string | undefined {
@@ -74,7 +91,7 @@ function peek(tokens: string[]): string | undefined {
   return tokens[0];
 }
 
-function readOperation(tokens: string[]): ParseTree {
+function readFactor(tokens: string[]): ParseTree {
   let left = readOperand(tokens);
 
   while (peek(tokens)) {
@@ -115,7 +132,10 @@ export function interpret(node: ParseTree): number {
 }
 
 function interpretValue(node: ValueNode): number {
-  return node.value;
+  if (node.kind === "number") {
+    return node.value;
+  }
+  return 0;
 }
 
 function interpretOperator(node: OperatorNode): number {

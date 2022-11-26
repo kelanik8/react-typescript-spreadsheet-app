@@ -25,11 +25,21 @@ describe("formulas", () => {
     });
 
     it("tokenizes operators", () => {
-      expect(tokenize("+-*/")).toEqual(["+", "-", "*", "/"]);
+      expect(tokenize("+-*/&")).toEqual(["+", "-", "*", "/", "&"]);
     });
 
     it("tokenizes thing that are unexpected", () => {
       expect(tokenize("unexpected #!@")).toEqual(["unexpected", "#!@"]);
+    });
+
+    it("tokenizes strings", () => {
+      expect(tokenize("'single quoted value'")).toEqual([
+        "'single quoted value'",
+      ]);
+
+      expect(tokenize('"double quoted value"')).toEqual([
+        '"double quoted value"',
+      ]);
     });
   });
 
@@ -41,6 +51,7 @@ describe("formulas", () => {
     it("parses single number values", () => {
       expect(parse(tokenize("1.23"))).toEqual({
         type: "value",
+        kind: "number",
         value: 1.23,
       });
     });
@@ -48,6 +59,7 @@ describe("formulas", () => {
     it("parses negative number values", () => {
       expect(parse(tokenize("-1"))).toEqual({
         type: "value",
+        kind: "number",
         value: -1,
       });
     });
@@ -56,8 +68,16 @@ describe("formulas", () => {
       expect(parse(tokenize("1+2"))).toEqual({
         type: "operator",
         kind: "+",
-        left: { type: "value", value: 1 },
-        right: { type: "value", value: 2 },
+        left: { type: "value", kind: "number", value: 1 },
+        right: { type: "value", kind: "number", value: 2 },
+      });
+    });
+
+    it("parses string values", () => {
+      expect(parse(tokenize("'string value'"))).toEqual({
+        type: "value",
+        kind: "string",
+        value: "string value",
       });
     });
 
@@ -84,10 +104,19 @@ describe("formulas", () => {
         left: {
           type: "operator",
           kind: "+",
-          left: { type: "value", value: 1 },
-          right: { type: "value", value: 2 },
+          left: { type: "value", kind: "number", value: 1 },
+          right: { type: "value", kind: "number", value: 2 },
         },
-        right: { type: "value", value: 3 },
+        right: { type: "value", kind: "number", value: 3 },
+      });
+    });
+
+    it("parses string concatenation", () => {
+      expect(parse(tokenize("'a''b'"))).toEqual({
+        type: "operator",
+        kind: "&",
+        left: { type: "value", kind: "string", value: "a" },
+        right: { type: "value", kind: "string", value: "b" },
       });
     });
   });
