@@ -6,6 +6,7 @@ import {
   KeyboardEvent,
   useEffect,
 } from "react";
+import { calculateValueOf } from "./formula";
 
 const NUMBER_OF_ROWS = 100;
 const COLUMNS = ["A", "B", "C", "D"];
@@ -16,8 +17,8 @@ interface SpreadsheetProps {
 
 export function Spreadsheet({
   data = [
-    ["content in A1", ""],
-    ["", "content in B2"],
+    ["content in A1", "", "=1+50"],
+    ["", "content in B2", ""],
   ],
 }: SpreadsheetProps): React.ReactElement {
   const [grid, setGrid] = useState(data);
@@ -85,6 +86,9 @@ function Cell({
 }: CellProps): React.ReactElement {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(children);
+  const [value, setValue] = useState(content);
+  const [error, setError] = useState<undefined | string>(undefined);
+
   const editActionRef = useRef<EditAction>("confirm");
 
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -142,12 +146,23 @@ function Cell({
     }
   }, [isEditing]);
 
+  useEffect(() => {
+    try {
+      setValue(calculateValueOf(children) ?? "");
+      setError(undefined);
+    } catch (e) {
+      setValue("#ERROR");
+      setError(e.message);
+    }
+  }, [children]);
+
   return (
     <div
       className="cell"
       data-testid={`${column}${row}`}
       tabIndex={0}
       onDoubleClick={startEditing}
+      data-error={error}
     >
       {isEditing ? (
         <input
@@ -160,8 +175,16 @@ function Cell({
           onKeyDown={keyDown}
         />
       ) : (
-        children
+        value
       )}
     </div>
   );
 }
+
+/* function renderValueOf(content: undefined | string): string | undefined {
+  try {
+    return calculateValueOf(content);
+  } catch {
+    return "#ERROR";
+  }
+} */

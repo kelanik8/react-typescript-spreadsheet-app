@@ -12,10 +12,6 @@ type OperatorNode = {
   right: ParseTree;
 };
 
-function calculateFormula(content: string): string {
-  return String(interpret(parse(tokenize(content))));
-}
-
 export function calculateValueOf(
   content: undefined | string,
 ): undefined | string {
@@ -24,6 +20,10 @@ export function calculateValueOf(
   }
 
   return content;
+}
+
+function calculateFormula(content: string): string {
+  return String(interpret(parse(tokenize(content))));
 }
 
 export function tokenize(content: string): string[] {

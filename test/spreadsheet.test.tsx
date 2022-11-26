@@ -195,4 +195,42 @@ describe("spreadsheet", () => {
       expect(screen.getByRole("textbox")).toHaveValue("cell data");
     });
   });
+
+  describe("formulas", () => {
+    it("updates the cell with the calculated value", () => {
+      render(<Spreadsheet />);
+      const cellToEdit = screen.getByTestId("A2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "=1+2{enter}");
+
+      expect(cellToEdit).toHaveTextContent("3");
+    });
+
+    it("indicates an error in a cell when something went wrong", () => {
+      render(<Spreadsheet />);
+      const cellToEdit = screen.getByTestId("A2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "=1+unexpected{enter}");
+
+      expect(cellToEdit).toHaveTextContent("#ERROR");
+    });
+
+    it("shows full error message when erroneous cell is focused", () => {
+      render(<Spreadsheet />);
+      const cellToEdit = screen.getByTestId("A2");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "={enter}");
+      userEvent.click(cellToEdit);
+
+      const errorAttribute = document.activeElement?.getAttribute("data-error");
+
+      expect(errorAttribute).toEqual("Formula has no content");
+    });
+  });
 });
