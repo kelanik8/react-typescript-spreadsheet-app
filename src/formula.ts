@@ -1,24 +1,26 @@
 export function calculateValueOf(
   content: undefined | string,
+  grid: string[][],
 ): undefined | string {
   if (content && content.charAt(0) === "=") {
-    return calculateFormula(content.substr(1));
+    return calculateFormula(content.substr(1), grid);
   }
 
   return content;
 }
 
-function calculateFormula(content: string): string {
-  return String(interpret(parse(tokenize(content))));
+function calculateFormula(content: string, grid: string[][]): string {
+  return String(interpret(parse(tokenize(content)), grid));
 }
 
 const numbers = /^\d+(\.\d+)?$/;
 const strings = /^'[^']*'|"[^"]*"$/;
+const identifiers = /^[A-Z][1-9][0-9]*$/;
 const operators = /^[+\-*/&]$/;
 const rest = /^[^\s]+$/;
 
 export function tokenize(content: string): string[] {
-  const allTokens = [numbers, strings, operators, rest];
+  const allTokens = [numbers, strings, identifiers, operators, rest];
   const allTokensCombined = allTokens
     .map((regex) => removeFirstAndLastCharacter(regex.source))
     .join("|");
@@ -31,15 +33,23 @@ function removeFirstAndLastCharacter(value: string): string {
   return value.slice(1, -1);
 }
 
-type ParseTree = ValueNode | OperatorNode;
+type ParseTree = ValueNode | OperatorNode | ReferenceNode;
+
 type ValueNode =
   | { type: "value"; kind: "number"; value: number }
   | { type: "value"; kind: "string"; value: string };
+
 type OperatorNode = {
   type: "operator";
   kind: string;
   left: ParseTree;
   right: ParseTree;
+};
+
+type ReferenceNode = {
+  type: "reference";
+  column: string;
+  row: number;
 };
 
 export function parse(tokens: string[]): ParseTree {
@@ -105,6 +115,14 @@ function readOperand(tokens: string[]): ParseTree {
     };
   }
 
+  if (identifiers.test(token)) {
+    return {
+      type: "reference",
+      column: token.charAt(0),
+      row: parseInt(token.substring(1), 10),
+    };
+  }
+
   throw new Error(`Expected operand, but found ${token}`);
 }
 
@@ -144,21 +162,31 @@ function peek(tokens: string[]): string | undefined {
   return tokens[0];
 }
 
-export function interpret(node: ParseTree): number | string {
+export function interpret(
+  node: ParseTree,
+  grid: string[][] = [],
+): number | string {
   if (node.type === "value") {
     return interpretValue(node);
   }
 
-  return interpretOperator(node);
+  if (node.type === "operator") {
+    return interpretOperator(node, grid);
+  }
+
+  return interpretReference(node, grid);
 }
 
 function interpretValue(node: ValueNode): number | string {
   return node.value;
 }
 
-function interpretOperator(node: OperatorNode): number | string {
-  const left = interpret(node.left);
-  const right = interpret(node.right);
+function interpretOperator(
+  node: OperatorNode,
+  grid: string[][],
+): number | string {
+  const left = interpret(node.left, grid);
+  const right = interpret(node.right, grid);
 
   if (typeof left === "number" && typeof right === "number") {
     if (node.kind === "+") {
@@ -183,4 +211,33 @@ function interpretOperator(node: OperatorNode): number | string {
   throw new Error(
     `Unable to evaluate ${typeof left} ${node.kind} ${typeof right}`,
   );
+}
+
+function interpretReference(
+  node: ReferenceNode,
+  grid: string[][],
+): number | string {
+  const rowIndex = node.row - 1;
+  const columnIndex = node.column.charCodeAt(0) - "A".charCodeAt(0);
+  const maybeCellValue = grid[rowIndex]?.[columnIndex];
+  const numberValue = parseFloat(maybeCellValue ?? "0");
+  const stringValue = String(maybeCellValue ?? "");
+
+  if (stringValue === String(numberValue)) {
+    return numberValue;
+  }
+
+  if (stringValue.charAt(0) === "=") {
+    try {
+      return interpret(parse(tokenize(stringValue.substring(1))), grid);
+    } catch (error) {
+      if (error.message.includes("call stack size")) {
+        throw new Error("Formula contains a circular reference");
+      }
+
+      throw error;
+    }
+  }
+
+  return stringValue;
 }

@@ -2,15 +2,19 @@ import { calculateValueOf, parse, tokenize, interpret } from "../src/formula";
 
 describe("formulas", () => {
   it("does not calculate anything for empty cells", () => {
-    expect(calculateValueOf(undefined)).toEqual(undefined);
+    expect(calculateValueOf(undefined, [])).toEqual(undefined);
   });
 
   it("does not calculate anything for fixed values", () => {
-    expect(calculateValueOf("some content")).toEqual("some content");
+    expect(calculateValueOf("some content", [])).toEqual("some content");
   });
 
   it("calculates simple arithmetic", () => {
-    expect(calculateValueOf("=1+2")).toEqual("3");
+    expect(calculateValueOf("=1+2", [])).toEqual("3");
+  });
+
+  it("evaluates cell references", () => {
+    expect(calculateValueOf("=A1+2", [["1"]])).toEqual("3");
   });
 
   describe("tokenize", () => {
@@ -40,6 +44,10 @@ describe("formulas", () => {
       expect(tokenize('"double quoted value"')).toEqual([
         '"double quoted value"',
       ]);
+    });
+
+    it("tokenizes cell identifiers", () => {
+      expect(tokenize("A1")).toEqual(["A1"]);
     });
   });
 
@@ -119,6 +127,14 @@ describe("formulas", () => {
         right: { type: "value", kind: "string", value: "b" },
       });
     });
+
+    it("parses cell references", () => {
+      expect(parse(tokenize("A1"))).toEqual({
+        type: "reference",
+        column: "A",
+        row: 1,
+      });
+    });
   });
 
   describe("interpreting", () => {
@@ -145,6 +161,34 @@ describe("formulas", () => {
     it("throws an error when incompatible types are used", () => {
       expect(() => interpret(parse(tokenize("1+'a'")))).toThrow(
         "Unable to evaluate number + string",
+      );
+    });
+
+    it("interprets references to empty cells as empty strings", () => {
+      expect(interpret(parse(tokenize("A1")), [])).toEqual("");
+    });
+
+    it("interprets cell references to strings", () => {
+      expect(interpret(parse(tokenize("A1")), [["some string"]])).toEqual(
+        "some string",
+      );
+    });
+
+    it("interprets cell references to numbers", () => {
+      expect(interpret(parse(tokenize("A1")), [["1"]])).toEqual(1);
+    });
+
+    it("interprets operations with cell references", () => {
+      expect(interpret(parse(tokenize("A1+2")), [["1"]])).toEqual(3);
+    });
+
+    it("interprets to interupt formulas from cell references", () => {
+      expect(interpret(parse(tokenize("A1")), [["=1+2"]])).toEqual(3);
+    });
+
+    it("throws an error when interpreting circular references", () => {
+      expect(() => interpret(parse(tokenize("A1")), [["=B1", "=A1"]])).toThrow(
+        "Formula contains a circular reference",
       );
     });
   });

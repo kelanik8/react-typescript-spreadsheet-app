@@ -17,8 +17,8 @@ interface SpreadsheetProps {
 
 export function Spreadsheet({
   data = [
-    ["content in A1", "", "=1+50"],
-    ["", "content in B2", ""],
+    ["A1", "", "=1+50"],
+    ["", "B2", ""],
   ],
 }: SpreadsheetProps): React.ReactElement {
   const [grid, setGrid] = useState(data);
@@ -35,6 +35,8 @@ export function Spreadsheet({
 
     setGrid(gridCopy);
   };
+
+  const calculateValue = (content: string) => calculateValueOf(content, grid);
 
   return (
     <table className="spreadsheet">
@@ -57,6 +59,7 @@ export function Spreadsheet({
                   column={columnLetter}
                   row={rowIndex + 1}
                   valueUpdated={updateGrid}
+                  calculateValue={calculateValue}
                 >
                   {grid[rowIndex]?.[columnIndex]}
                 </Cell>
@@ -74,6 +77,7 @@ interface CellProps {
   row: number;
   children: string | undefined;
   valueUpdated: (column: string, row: number, value: string) => void;
+  calculateValue: (content: string) => string | undefined;
 }
 
 type EditAction = "confirm" | "cancel";
@@ -83,6 +87,7 @@ function Cell({
   row,
   children = "",
   valueUpdated,
+  calculateValue,
 }: CellProps): React.ReactElement {
   const [isEditing, setIsEditing] = useState(false);
   const [content, setContent] = useState(children);
@@ -148,13 +153,13 @@ function Cell({
 
   useEffect(() => {
     try {
-      setValue(calculateValueOf(children) ?? "");
+      setValue(calculateValue(children) ?? "");
       setError(undefined);
     } catch (e) {
       setValue("#ERROR");
       setError(e.message);
     }
-  }, [children]);
+  }, [children, calculateValue]);
 
   return (
     <div

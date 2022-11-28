@@ -232,5 +232,16 @@ describe("spreadsheet", () => {
 
       expect(errorAttribute).toEqual("Formula has no content");
     });
+
+    it("updates the cell with values from other cells", () => {
+      render(<Spreadsheet data={[["value"]]} />);
+      const cellToEdit = screen.getByTestId("B1");
+
+      userEvent.dblClick(cellToEdit);
+      const inputElement = screen.getByRole("textbox");
+      userEvent.type(inputElement, "=A1{enter}");
+
+      expect(cellToEdit).toHaveTextContent("value");
+    });
   });
 });
